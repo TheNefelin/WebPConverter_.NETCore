@@ -1,0 +1,188 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+
+    int quality = ViewBag.Quality;
+    int Width = ViewBag.Width;
+    int Height = ViewBag.Height;
+    string Ratio = ViewBag.Ratio;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+
+<div class="container bg-secondary text-white p-4 rounded shadow-sm mb-2">
+    <table class="table table-hover m-0">
+        <thead>
+            <tr><th scope="col">Tipo</th><th scope="col">Relacion</th><th scope="col">WxH 1</th> <th scope="col">WxH 2</th></tr>
+        </thead>
+        <tbody id="id_table">
+            <tr><th>Cuadrado</th><td>1:1</td><td>1080 x 1080</td><td>800 x 800</td></tr>
+            <tr><th>Estándar</th><td>4:3</td><td>800 x 600</td><td>1024 x 768</td></tr>
+            <tr><th>Panorámica 1</th><td>16:9</td><td>1920 x 1080</td><td>1280 x 720</td></tr>
+            <tr><th>Fotografía</th><td>3:2</td><td>6000 x 4000</td><td>3000 x 2000</td></tr>
+            <tr><th>Panorámico 2</th><td>2:1</td><td>2000 x 1000</td><td>1200 x 600</td></tr>
+            <tr><th>Cámara 1</th><td>5:4</td><td>2500 x 2000</td><td>1600 x 1280</td></tr>
+            <tr><th>Cámara 2</th><td>16:10</td><td>1920 x 1200</td><td>1440 x 900</td></tr>
+            <tr><th>Ultra Panorámica</th><td>21:9</td><td>2560 x 1080</td><td>3840 x 1600</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="container bg-secondary text-white p-4 rounded shadow-sm mb-2">
+        <div class="form-check">
+            <input id="id_convert_only" name="conversionOption" value="convertOnly" class="form-check-input" type="radio" checked>
+            <label class="form-check-label">Convert to WebP</label>
+        </div>
+        <div class="form-check">
+            <input id="id_convert_resize" name="conversionOption" value="convertAndResize" class="form-check-input" type="radio">
+            <label class="form-check-label">Convert to WebP with Max-W Max-H (Ratio)</label>
+        </div>
+
+        <hr />
+
+        <div class="d-inline-flex align-items-center justify-content-center gap-2">
+            <label for="id_quality" class="form-label">Quality:</label>
+            <input id="id_quality" name="quality" value="@quality" min="0" max="100" type="number" class="form-control input-sm">
+            <input id="id_quality_range" type="range" class="form-range" min="0" max="100" step="1">
+        </div>
+
+        <hr />
+
+        <div id="id_convert_resize_parameter" class="d-inline-flex align-items-center justify-content-center gap-2">
+            <label for="id_width" class="form-label">Width:</label>
+            <input id="id_width" name="width" value="@Width" type="number" class="form-control input-sm">
+
+            <label for="id_height" class="form-label">Height:</label>
+            <input id="id_height" name="height" value="@Height" type="number" class="form-control input-sm">
+
+            <label for="id_ratio" class="form-label">Ratio:</label>
+            <input id="id_ratio" value="@Ratio" type="text" class="form-control input-sm" disabled>
+        </div>
+    </div>
+
+    <div class="container bg-secondary opacity-75 text-white p-4 rounded shadow-sm mb-2">
+        <div class="d-inline-flex gap-4">
+            <input id="id_newImages" name="newImages" class="form-control" type="file" multiple accept="image/png, image/jpeg, image/jpg">
+            <button type="submit" class="btn btn-warning">Process</button>
+        </div>
+    </div>
+</form>
+
+@if (Model != null && Model.Count > 0)
+{
+    <h3 class="text-success">Imágenes Convertidas:</h3>
+
+    @foreach (var uploadImage in Model)
+    {
+
+        @if (uploadImage.IsError)
+        {
+            <div class="alert alert-danger" role="alert">
+                @uploadImage.ErrorMessage
+            </div>
+        }
+
+        <div class="card text-bg-light mb-3" style="max-height: 250px;">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="@Url.Content(uploadImage.ImageLocalPath)" alt="@uploadImage.ImageName" class="img-fluid rounded-start" style="max-height: 250px; object-fit: contain;">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">@uploadImage.ImageName</h5>
+
+                        <label class="fw-bold">Original:</label>
+                        <p class="card-text">
+                            - Witdh:
+                            <span>@uploadImage.OriginalWidth</span>
+                            - Height:
+                            <span>@uploadImage.OriginalHeight</span>
+                            - Ratio:
+                            <span>@uploadImage.OriginalAspectRatio</span>
+                        </p>
+
+                        <label class="fw-bold">Nuevo:</label>
+                        <p class="card-text">
+                            - Witdh:
+                            <span>@uploadImage.TargetWidth</span>
+                            - Height:
+                            <span>@uploadImage.TargetHeight</span>
+                            - Ratio:
+                            <span>@uploadImage.TargetAspectRatio</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const widthInput = document.getElementById("id_width");
+        const heightInput = document.getElementById("id_height");
+        const ratioInput = document.getElementById("id_ratio");
+        const qualityInput = document.getElementById("id_quality");
+        const qualityRange = document.getElementById("id_quality_range");
+        const convertOnlyRadio = document.getElementById("id_convert_only");
+        const convertResizeRadio = document.getElementById("id_convert_resize");
+        const convertResizePanel = document.getElementById("id_convert_resize_parameter");
+
+        ratioInput.value = "n/a";
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function updateRatio() {
+            const width = parseInt(widthInput.value);
+            const height = parseInt(heightInput.value);
+
+            if (width > 0 && height > 0) {
+                const divisor = gcd(width, height);
+                ratioInput.value = `${width / divisor}/${height / divisor}`;
+            } else {
+                ratioInput.value = "Invalid";
+            }
+        }
+
+        function syncQualityValues() {
+            let qualityValue = parseInt(qualityInput.value);
+            qualityInput.value = Math.min(100, Math.max(0, qualityValue));
+            qualityRange.value = qualityInput.value;
+        }
+
+        function syncQualityRange() {
+            qualityInput.value = qualityRange.value;
+        }
+
+        function toggleResizeFields() {
+            const isEnable = !convertResizeRadio.checked;
+            widthInput.readOnly = isEnable;
+            heightInput.readOnly = isEnable;
+
+            if (isEnable) {
+                widthInput.classList.add("bg-secondary");
+                heightInput.classList.add("bg-secondary");
+            } else {
+                widthInput.classList.remove("bg-secondary");
+                heightInput.classList.remove("bg-secondary");
+            }
+        }
+
+        widthInput.addEventListener("input", updateRatio);
+        heightInput.addEventListener("input", updateRatio);
+        qualityInput.addEventListener("input", syncQualityValues);
+        qualityRange.addEventListener("input", syncQualityRange);
+        convertOnlyRadio.addEventListener("change", toggleResizeFields);
+        convertResizeRadio.addEventListener("change", toggleResizeFields);
+
+        // Initialize settings on page load
+        updateRatio();
+        toggleResizeFields();
+    });
+</script>
