@@ -1,6 +1,5 @@
 ﻿using ClassLibrary.Utils.Models;
 using SkiaSharp;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ClassLibrary.Utils.Tools
 {
